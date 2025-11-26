@@ -1,0 +1,210 @@
+{
+  "validation": {
+    "metrics": {
+      "accuracy": 0.7670439589365623,
+      "precision": 0.7724747244739958,
+      "recall": 0.9818244964112063,
+      "f1": 0.8646582046184432,
+      "roc_auc": 0.736193220931543,
+      "pr_auc": 0.8890003269897067,
+      "confusion_matrix": [
+        [
+          261,
+          2498
+        ],
+        [
+          157,
+          8481
+        ]
+      ],
+      "top_decile_rate": 0.9587357330992098,
+      "bottom_decile_rate": 0.4503950834064969,
+      "lift": 2.128654970760234
+    },
+    "brier_score": 0.1714788876626223,
+    "plots": {
+      "confusion_matrix": "reports\\evaluation\\figures\\confusion_matrix_validation.png",
+      "roc_curve": "reports\\evaluation\\figures\\roc_curve_validation.png",
+      "pr_curve": "reports\\evaluation\\figures\\pr_curve_validation.png",
+      "calibration": "reports\\evaluation\\figures\\calibration_validation.png",
+      "decile_lift": "reports\\evaluation\\figures\\decile_lift_validation.png",
+      "threshold_analysis": "reports\\evaluation\\figures\\threshold_analysis_validation.png"
+    },
+    "decile_summary": [
+      {
+        "n": 1101,
+        "positives": 1055,
+        "hit_rate": 0.9582198001816531,
+        "lift": 1.2642777335807247,
+        "decile_rank": 0
+      },
+      {
+        "n": 1124,
+        "positives": 1029,
+        "hit_rate": 0.9154804270462633,
+        "lift": 1.207887291855321,
+        "decile_rank": 1
+      },
+      {
+        "n": 1145,
+        "positives": 1031,
+        "hit_rate": 0.9004366812227074,
+        "lift": 1.188038533907756,
+        "decile_rank": 2
+      },
+      {
+        "n": 1189,
+        "positives": 1015,
+        "hit_rate": 0.8536585365853658,
+        "lift": 1.1263193264023401,
+        "decile_rank": 3
+      },
+      {
+        "n": 1137,
+        "positives": 898,
+        "hit_rate": 0.7897977132805629,
+        "lift": 1.0420611875733474,
+        "decile_rank": 4
+      },
+      {
+        "n": 1142,
+        "positives": 870,
+        "hit_rate": 0.7618213660245184,
+        "lift": 1.005149121160157,
+        "decile_rank": 5
+      },
+      {
+        "n": 1138,
+        "positives": 824,
+        "hit_rate": 0.7240773286467487,
+        "lift": 0.9553495386185453,
+        "decile_rank": 6
+      },
+      {
+        "n": 1141,
+        "positives": 737,
+        "hit_rate": 0.6459246275197196,
+        "lift": 0.8522346584674975,
+        "decile_rank": 7
+      },
+      {
+        "n": 1126,
+        "positives": 656,
+        "hit_rate": 0.5825932504440497,
+        "lift": 0.7686750723906963,
+        "decile_rank": 8
+      },
+      {
+        "n": 1154,
+        "positives": 523,
+        "hit_rate": 0.4532062391681109,
+        "lift": 0.5979615081962213,
+        "decile_rank": 9
+      }
+    ]
+  },
+  "test": {
+    "metrics": {
+      "accuracy": 0.76713170132491,
+      "precision": 0.7724747244739958,
+      "recall": 0.981938172976728,
+      "f1": 0.8647022838499184,
+      "roc_auc": 0.7393152857691797,
+      "pr_auc": 0.8902046766215215,
+      "confusion_matrix": [
+        [
+          262,
+          2498
+        ],
+        [
+          156,
+          8481
+        ]
+      ],
+      "top_decile_rate": 0.95171202809482,
+      "bottom_decile_rate": 0.43898156277436345,
+      "lift": 2.168
+    },
+    "brier_score": 0.17084440513580465,
+    "plots": {
+      "confusion_matrix": "reports\\evaluation\\figures\\confusion_matrix_test.png",
+      "roc_curve": "reports\\evaluation\\figures\\roc_curve_test.png",
+      "pr_curve": "reports\\evaluation\\figures\\pr_curve_test.png",
+      "calibration": "reports\\evaluation\\figures\\calibration_test.png",
+      "decile_lift": "reports\\evaluation\\figures\\decile_lift_test.png",
+      "threshold_analysis": "reports\\evaluation\\figures\\threshold_analysis_test.png"
+    },
+    "decile_summary": [
+      {
+        "n": 1111,
+        "positives": 1061,
+        "hit_rate": 0.954995499549955,
+        "lift": 1.2601694695346575,
+        "decile_rank": 0
+      },
+      {
+        "n": 1169,
+        "positives": 1085,
+        "hit_rate": 0.9281437125748503,
+        "lift": 1.2247370490002973,
+        "decile_rank": 1
+      },
+      {
+        "n": 1126,
+        "positives": 984,
+        "hit_rate": 0.8738898756660746,
+        "lift": 1.1531461054725312,
+        "decile_rank": 2
+      },
+      {
+        "n": 1152,
+        "positives": 982,
+        "hit_rate": 0.8524305555555556,
+        "lift": 1.1248293437150245,
+        "decile_rank": 3
+      },
+      {
+        "n": 1121,
+        "positives": 894,
+        "hit_rate": 0.7975022301516503,
+        "lift": 1.0523483752504756,
+        "decile_rank": 4
+      },
+      {
+        "n": 1140,
+        "positives": 901,
+        "hit_rate": 0.7903508771929825,
+        "lift": 1.042911768828114,
+        "decile_rank": 5
+      },
+      {
+        "n": 1127,
+        "positives": 832,
+        "hit_rate": 0.738243123336291,
+        "lift": 0.9741527007831086,
+        "decile_rank": 6
+      },
+      {
+        "n": 1170,
+        "positives": 748,
+        "hit_rate": 0.6393162393162393,
+        "lift": 0.8436131966524463,
+        "decile_rank": 7
+      },
+      {
+        "n": 1140,
+        "positives": 648,
+        "hit_rate": 0.5684210526315789,
+        "lift": 0.7500630701449699,
+        "decile_rank": 8
+      },
+      {
+        "n": 1141,
+        "positives": 502,
+        "hit_rate": 0.43996494303242767,
+        "lift": 0.5805581169087157,
+        "decile_rank": 9
+      }
+    ]
+  }
+}

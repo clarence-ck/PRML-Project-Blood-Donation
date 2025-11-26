@@ -1,0 +1,73 @@
+{
+  "data_overview": {
+    "shape": {
+      "rows": 75978,
+      "columns": 22
+    },
+    "memory_usage_mb": 67.15286445617676,
+    "dtypes": {
+      "donor_id": "object",
+      "name": "object",
+      "email": "object",
+      "contact_number": "object",
+      "password": "object",
+      "date_of_birth": "object",
+      "gender": "object",
+      "education_level": "object",
+      "blood_group": "object",
+      "first_donation_date": "object",
+      "last_donation_date": "object",
+      "number_of_donation": "int64",
+      "total_donation_volume_ml": "int64",
+      "last_donation_volume_ml": "int64",
+      "donation_count_outram": "int64",
+      "donation_count_dhoby_ghaut": "int64",
+      "donation_count_woodlands": "int64",
+      "donation_count_jurong_east": "int64",
+      "donation_count_punggol": "int64",
+      "had_adverse_reaction_ever": "bool",
+      "last_blood_quality_screen": "object",
+      "availability": "object"
+    },
+    "column_names": [
+      "donor_id",
+      "name",
+      "email",
+      "contact_number",
+      "password",
+      "date_of_birth",
+      "gender",
+      "education_level",
+      "blood_group",
+      "first_donation_date",
+      "last_donation_date",
+      "number_of_donation",
+      "total_donation_volume_ml",
+      "last_donation_volume_ml",
+      "donation_count_outram",
+      "donation_count_dhoby_ghaut",
+      "donation_count_woodlands",
+      "donation_count_jurong_east",
+      "donation_count_punggol",
+      "had_adverse_reaction_ever",
+      "last_blood_quality_screen",
+      "availability"
+    ]
+  },
+  "missing_values": {
+    "total_missing_values": 0,
+    "columns_with_missing": {},
+    "missing_percentage": {}
+  },
+  "class_distribution": {
+    "counts": {
+      "Yes": 57582,
+      "No": 18396
+    },
+    "percentages": {
+      "Yes": 75.79,
+      "No": 24.21
+    },
+    "imbalance_ratio": 3.1301369863013697
+  }
+}

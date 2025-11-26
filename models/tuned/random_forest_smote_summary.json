@@ -1,0 +1,23 @@
+{
+  "best_params": {
+    "model__max_depth": null,
+    "model__max_features": "sqrt",
+    "model__min_samples_leaf": 1
+  },
+  "subsample_fraction": 0.5,
+  "cv_folds": 4,
+  "random_search_best_score": 0.8263306725543065,
+  "grid_search_params": {
+    "model__max_depth": [
+      null,
+      20
+    ],
+    "model__min_samples_leaf": [
+      1,
+      2
+    ],
+    "model__max_features": [
+      "sqrt"
+    ]
+  }
+}

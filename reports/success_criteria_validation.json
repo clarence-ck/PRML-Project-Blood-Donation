@@ -1,0 +1,114 @@
+{
+  "validation_results": {
+    "1": {
+      "criterion": "EDA - Comprehensive exploratory data analysis",
+      "passed": true,
+      "evidence": {
+        "eda_summary_exists": true,
+        "figures_generated": 8
+      }
+    },
+    "2": {
+      "criterion": "All required models trained (6 models)",
+      "passed": true,
+      "evidence": {
+        "trained_models": [
+          "logistic_regression",
+          "random_forest",
+          "adaboost",
+          "svm_linear",
+          "xgboost",
+          "lightgbm",
+          "logistic_regression_smote",
+          "random_forest_smote",
+          "xgboost_smote"
+        ],
+        "missing_models": [],
+        "count": 9
+      }
+    },
+    "3": {
+      "criterion": "Cross-validation performed in training pipeline",
+      "passed": true,
+      "evidence": {
+        "cross_validation_present": true,
+        "models_with_cv": [
+          "logistic_regression",
+          "random_forest",
+          "adaboost",
+          "svm_linear",
+          "xgboost",
+          "lightgbm",
+          "logistic_regression_smote",
+          "random_forest_smote",
+          "xgboost_smote"
+        ]
+      }
+    },
+    "4": {
+      "criterion": "Visualizations (CM, ROC, PR, calibration, decile lift)",
+      "passed": true,
+      "evidence": {
+        "required_types": [
+          "confusion_matrix",
+          "roc_curve",
+          "pr_curve",
+          "calibration",
+          "decile_lift"
+        ],
+        "found_types": [
+          "confusion_matrix",
+          "roc_curve",
+          "pr_curve",
+          "calibration",
+          "decile_lift"
+        ],
+        "total_figures": 12
+      }
+    },
+    "5": {
+      "criterion": "Explainability (feature importance and related plots)",
+      "passed": true,
+      "evidence": {
+        "core_required": [
+          "feature_importances"
+        ],
+        "found_core": [
+          "feature_importances"
+        ],
+        "optional_artifacts": [
+          "partial_dependence"
+        ],
+        "found_optional": []
+      }
+    },
+    "6": {
+      "criterion": "Subgroup analysis (demographics)",
+      "passed": true,
+      "evidence": {
+        "required_dimensions": [
+          "blood_group",
+          "gender",
+          "age_band"
+        ],
+        "found_dimensions": [
+          "blood_group",
+          "gender",
+          "age_band"
+        ],
+        "subgroup_plots_generated": 2
+      }
+    },
+    "7": {
+      "criterion": "Final comprehensive report",
+      "passed": true,
+      "evidence": {
+        "report_exists": true,
+        "report_size_bytes": 7371
+      }
+    }
+  },
+  "total_criteria": 7,
+  "passed_criteria": 7,
+  "all_passed": true
+}

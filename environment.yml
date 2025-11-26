@@ -1,0 +1,17 @@
+name: prml-project
+channels:
+  - defaults
+dependencies:
+  - python=3.11.14
+  - ipykernel
+  - jupyter
+  - numpy
+  - pandas
+  - scikit-learn
+  - imbalanced-learn
+  - seaborn
+  - pip
+  - pip:
+      - xgboost
+      - lightgbm
+      - shap

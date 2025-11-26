@@ -1,0 +1,110 @@
+{
+  "n_features": 27,
+  "top_features": [
+    {
+      "feature": "days_since_last_donation",
+      "importance_mean": 0.005322638452874817,
+      "importance_std": 0.0007155747281654714
+    },
+    {
+      "feature": "age",
+      "importance_mean": 0.002671709587327642,
+      "importance_std": 0.0005709074388629979
+    },
+    {
+      "feature": "donor_tenure_days",
+      "importance_mean": 0.0009925741231458618,
+      "importance_std": 0.0006118268398143102
+    },
+    {
+      "feature": "had_adverse_reaction_ever",
+      "importance_mean": 0.0005621543065244094,
+      "importance_std": 0.0002355340083692172
+    },
+    {
+      "feature": "risk_recency",
+      "importance_mean": 0.00031808463322005045,
+      "importance_std": 0.000252874588899202
+    },
+    {
+      "feature": "donations_per_year",
+      "importance_mean": 0.00028660352950761193,
+      "importance_std": 0.00013395516514686347
+    },
+    {
+      "feature": "education_level_encoded",
+      "importance_mean": 0.00013597453359376344,
+      "importance_std": 0.00034862730754715003
+    },
+    {
+      "feature": "blood_group_O+",
+      "importance_mean": 0.0,
+      "importance_std": 0.0
+    },
+    {
+      "feature": "blood_group_B-",
+      "importance_mean": 0.0,
+      "importance_std": 0.0
+    },
+    {
+      "feature": "blood_group_B+",
+      "importance_mean": 0.0,
+      "importance_std": 0.0
+    },
+    {
+      "feature": "blood_group_AB-",
+      "importance_mean": 0.0,
+      "importance_std": 0.0
+    },
+    {
+      "feature": "blood_group_AB+",
+      "importance_mean": 0.0,
+      "importance_std": 0.0
+    },
+    {
+      "feature": "blood_group_A-",
+      "importance_mean": 0.0,
+      "importance_std": 0.0
+    },
+    {
+      "feature": "last_blood_quality_screen",
+      "importance_mean": 0.0,
+      "importance_std": 0.0
+    },
+    {
+      "feature": "gender_Male",
+      "importance_mean": 0.0,
+      "importance_std": 0.0
+    },
+    {
+      "feature": "primary_location_pct",
+      "importance_mean": 0.0,
+      "importance_std": 0.0
+    },
+    {
+      "feature": "volume_consistency",
+      "importance_mean": 0.0,
+      "importance_std": 0.0
+    },
+    {
+      "feature": "recency_ratio",
+      "importance_mean": 0.0,
+      "importance_std": 0.0
+    },
+    {
+      "feature": "donation_count_punggol",
+      "importance_mean": 0.0,
+      "importance_std": 0.0
+    },
+    {
+      "feature": "donation_count_jurong_east",
+      "importance_mean": 0.0,
+      "importance_std": 0.0
+    }
+  ],
+  "n_repeats": 10,
+  "scoring": "f1",
+  "figure_paths": {
+    "feature_importances": "reports\\figures\\feature_importances_best_model.png"
+  }
+}

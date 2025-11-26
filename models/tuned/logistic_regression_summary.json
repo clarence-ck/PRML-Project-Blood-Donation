@@ -1,0 +1,15 @@
+{
+  "best_params": {
+    "model__C": 23.357214690901213
+  },
+  "subsample_fraction": 0.5,
+  "cv_folds": 4,
+  "random_search_best_score": 0.7441610739919613,
+  "grid_search_params": {
+    "model__C": [
+      11.678607345450606,
+      23.357214690901213,
+      46.714429381802425
+    ]
+  }
+}
