@@ -1,0 +1,20 @@
+# Ignore everything not needed to run the FastAPI inference container
+.git/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+.env.*
+venv/
+.envrc
+.idea/
+.vscode/
+reports/
+models/tuned/
+models/*.pkl
+!models/best_model.pkl
+blood_donor_dataset.csv
+processed_donor_features.csv
+**/node_modules/
+.DS_Store
