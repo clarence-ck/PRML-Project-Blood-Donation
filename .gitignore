@@ -1,3 +1,6 @@
 __pycache__/
 *.pkl
 !models/best_model.pkl
+infra/.terraform/
+*.tfstate
+*.tfstate.backup
