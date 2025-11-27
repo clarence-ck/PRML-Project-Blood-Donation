@@ -2,9 +2,6 @@
 
 from __future__ import annotations
 
-import pandas as pd
-import pytest
-
 from src.data.splits import TARGET_COLUMN, load_processed_dataset
 from src.features.preprocess import FEATURE_COLUMNS, NUMERIC_FEATURES
 
