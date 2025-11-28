@@ -35,6 +35,10 @@ jobs:
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
 
+      - name: Terraform init
+        working-directory: infra
+        run: terraform init -input=false -backend=false
+
       - name: Terraform fmt and validate
         working-directory: infra
         run: |
