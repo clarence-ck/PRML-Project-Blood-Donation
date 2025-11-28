@@ -448,7 +448,7 @@ flowchart LR
     dev -->|git push main| repo[(GitHub Repo)]
 
     %% CI job
-    repo -->|push to main (watched paths)| ci[CI Job<br/>(ci-and-deploy-lambda.yml)]
+    repo -->|push to main - watched paths| ci[CI Job<br/>(ci-and-deploy-lambda.yml)]
     ci -->|run tests| tests[pytest suite<br/>test_api.py<br/>test_data_schema.py<br/>test_model_artifact.py<br/>test_predict_example_payload.py]
     ci -->|terraform plan| tfPlan[Terraform plan<br/>infra/*.tf]
 
