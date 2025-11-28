@@ -454,7 +454,7 @@ flowchart LR
 
     %% Deploy decision
     ci -->|set deploy_needed| decision{deploy_needed == true?}
-    decision -->|no (tests-only or docs)| endCI[End: CI only<br/>no deploy]
+    decision -->|no deploy| endCI[End: CI only<br/>no deploy]
     decision -->|yes| deploy[Deploy Job]
 
     %% Build & push image
