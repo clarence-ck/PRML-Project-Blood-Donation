@@ -51,14 +51,22 @@ httpx
 
 ## 4. Configuration & Environment Variables
 
-The frontend reads the backend base URL from `API_BASE_URL`:
+1. **Retrieve the API Gateway invoke URL via Terraform** (after provisioning the backend):
 
-```
-export API_BASE_URL="https://<api-id>.execute-api.<region>.amazonaws.com"
-```
+   ```powershell
+   cd infra
+   terraform init            # first time only
+   terraform apply           # provisions Lambda + API Gateway
+   terraform output http_api_invoke_url
+   ```
 
-- **Required**: points at the deployed FastAPI Lambda (usually Terraform output `http_api_invoke_url`).
-- Obtain the value by running `terraform output http_api_invoke_url` from the `infra/` directory after applying the stack.
+2. **Export the value as `API_BASE_URL` before launching Gradio**:
+
+   ```powershell
+   export API_BASE_URL="https://<api-id>.execute-api.<region>.amazonaws.com"
+   ```
+
+- This variable is required; it must point at the deployed FastAPI Lambda (normally the Terraform `http_api_invoke_url`).
 - No trailing slash; the code normalises the value internally.
 - If unset, the app raises a Gradio error explaining how to configure it.
 
@@ -71,17 +79,17 @@ No other environment variables are needed for the client.
 - `_build_features_directly` recreates the inference feature vector without relying on pandas `get_dummies`. It validates timeline ordering, location counts, and ensures single-donation scenarios have matching first/last dates.
 - Location counts are the sole source of the total donation count; consistency checks ensure counts sum correctly and do not exceed overall donations.
 - Education, gender, blood group, adverse reaction, and quality screen inputs are encoded exactly like training-time transformations in `process_data.py`.
+- Donation timelines implicitly follow the training rule of **minimum 84 days between donations** (as enforced in `process_data.py`); ensure your first/last dates plus total donation count are historically plausible for that spacing.
 - Meta tags (`HEAD_META`) include Open Graph and Twitter metadata plus a favicon link so shared links show Blood Bank branding.
 
 ---
 
 ## 6. Running Locally (Python)
 
-1. Activate the Conda env (or ensure Python 3.11) and install deps if needed:
+1. Activate the existing Conda environment defined in `environment.yml` (or any Python 3.11 env that already has the frontend deps installed):
 
    ```powershell
    conda activate prml-project
-   pip install -r frontend_client/requirements.txt
    ```
 
 2. Set the backend URL:
@@ -90,10 +98,11 @@ No other environment variables are needed for the client.
    $env:API_BASE_URL = "https://<api-id>.execute-api.ap-southeast-1.amazonaws.com"
    ```
 
-3. Launch Gradio:
+3. Launch the frontend (FastAPI + mounted Gradio) via Uvicorn:
 
    ```powershell
-   python frontend_client/app.py
+   python -m frontend_client.app
+   # or: uvicorn frontend_client.app:app --host 0.0.0.0 --port 7860
    ```
 
 4. Open <http://127.0.0.1:7860> to interact with the UI.
@@ -119,7 +128,7 @@ The Docker image includes only what the client needs (`frontend_client/` files +
 
 - **Branding**: header uses `Blood_bank_SG_banner.png`; favicon + meta tags refer to `images/Blood_bank_SG_favicon.png` and `Blood_bank_SG_logo.png`.
 - **Sections**:
-  - *Demographics*: Age slider (18–80), gender, education, blood group.
+  - *Demographics*: Age slider (18–65), gender, education, blood group.
   - *Donation Timeline*: Date pickers defaulting to 20 Mar 2024 for both first and last donation.
   - *Donation Statistics*: Last donation volume slider (350–450 ml).
   - *Locations*: Numeric inputs per centre; sums determine `n_donations` with built-in validation.
@@ -150,17 +159,6 @@ Both functions raise `gr.Error` with descriptive messages if httpx encounters ne
 - Styling tweaks should use Gradio themes (as the current code does) rather than custom CSS, per user requirements.
 - To change branding assets, swap files under `frontend_client/images/` and adjust the paths in `app.py` if filenames differ.
 - Meta tags can be edited by changing the `HEAD_META` string near the top of `app.py`.
-
----
-
-## 11. Troubleshooting
-
-| Symptom | Likely Cause | Resolution |
-| --- | --- | --- |
-| Gradio error: `API_BASE_URL environment variable is not set` | Forgot to set env var | Export `API_BASE_URL` before launching app or pass via Docker `-e`. |
-| Submission error: `For a single donation, the first and last donation dates must be the same.` | Location counts sum to 1 but dates differ | Align the two date pickers or adjust counts to represent multiple donations. |
-| `check_health` shows failure | Backend down or URL wrong | Verify Lambda/API Gateway deployment and env var; test `/health` manually. |
-| Docker image cannot import `process_data` | Running outside repo root | Build using project root so `COPY process_data.py` succeeds. |
 
 ---
 
