@@ -440,29 +440,35 @@ This MLOps stack ensures that:
 
 ```mermaid
 flowchart LR
-    dev[Developer] -->|train model| train[Training Pipeline]
-    train -->|produces| model[(best_model.pkl)]
+    subgraph Training
+        dev[Developer] -->|run pipeline| train[Dataset.py<br/>process_data.py<br/>src.pipeline.run]
+        train -->|produces| model[(best_model.pkl)]
+    end
 
-    dev -->|git push| repo[(GitHub)]
+    subgraph CICD[CI/CD Pipeline]
+        dev -->|git push main| repo[(GitHub)]
+        repo -->|triggers| ci[CI Job]
+        ci -->|pytest| tests[4 test files]
+        ci -->|terraform| tfPlan[Plan only]
+        ci --> decision{deploy<br/>needed?}
+        decision -->|no| endCI[End]
+        decision -->|yes| deploy[Deploy Job]
+    end
 
-    repo -->|push to main| ci[CI Job]
-    ci -->|pytest| tests[Test Suite]
-    ci -->|validate| tfPlan[Terraform Plan]
+    subgraph Build[Container Build]
+        deploy -->|docker build| dockerfile[Dockerfile]
+        dockerfile --> image[Image:<br/>FastAPI + model]
+        image -->|docker push| ecr[(ECR)]
+    end
 
-    ci --> decision{deploy?}
-    decision -->|no| endCI[CI Only]
-    decision -->|yes| deploy[Deploy Job]
+    subgraph AWS[AWS Runtime]
+        ecr -->|update function| lambdaFn[Lambda]
+        lambdaFn <--> apigw[HTTP API Gateway]
+        lambdaFn --> mangum[Mangum]
+        mangum --> fastapi[FastAPI<br/>health + predict]
+        fastapi --> model
+    end
 
-    deploy -->|docker build| image[Docker Image]
-    image -->|push| ecr[(ECR)]
-
-    ecr -->|image_uri| lambdaFn[Lambda Function]
-    lambdaFn <--> apigw[API Gateway]
-
-    client[Client] -->|HTTP| apigw
-    apigw --> lambdaFn
-    lambdaFn -->|Mangum| fastapi[FastAPI]
-    fastapi -->|inference| model
-
+    client[Client] -->|HTTP request| apigw
     deploy -->|smoke test| apigw
 ```
