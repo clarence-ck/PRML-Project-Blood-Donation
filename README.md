@@ -15,8 +15,8 @@ This project builds an end-to-end ML system that predicts whether blood donors w
 
 **Key Achievements:**
 - 9 candidate models trained (baseline + SMOTE variants)
-- 96.0% recall on donor return prediction (test set)
-- 2.21× lift in top decile (test set ranking quality)
+- 98.2% recall on donor return prediction (test set)
+- 2.17× lift in top decile (test set ranking quality)
 - Comprehensive fairness auditing across demographics
 - Production-ready model with full interpretability
 
@@ -161,11 +161,11 @@ Transforms raw data into model-ready features **based on EDA findings**.
 6. **Create target:**
    - `target_available` = availability mapped to True/False
 
-**Output:** `processed_donor_features.csv` (75,978 rows × 30 columns)
+**Output:** `processed_donor_features.csv` (75,978 rows with engineered features and target)
 
-**Final feature set (features + target):**
-- 17 numeric feature columns (age, recency, tenure, donation intervals, volumes, ratios, location counts, frequency, risk interaction)
-- 12 indicator/ordinal feature columns (encoded education, gender and blood group one-hot indicators, reaction and quality flags)
+**Core modeling feature set (features + target):**
+- 16 numeric feature columns (age, recency, tenure, donation intervals, volumes, ratios, location counts, frequency, risk interaction)
+- 11 indicator/ordinal feature columns (encoded education, gender and blood group one-hot indicators, reaction and quality flags)
 - 1 boolean target (`target_available`)
 
 ---
@@ -279,13 +279,13 @@ Automated verification that all project requirements are met:
 
 | Metric | Value |
 |--------|-------|
-| **Accuracy** | 77.2% |
-| **Precision** | 78.6% |
-| **Recall** | 96.0% |
-| **F1-Score** | 86.4% |
-| **ROC-AUC** | 74.5% |
-| **PR-AUC** | 89.3% |
-| **Top Decile Lift** | 2.21× |
+| **Accuracy** | 76.7% |
+| **Precision** | 77.2% |
+| **Recall** | 98.2% |
+| **F1-Score** | 86.5% |
+| **ROC-AUC** | 73.9% |
+| **PR-AUC** | 89.0% |
+| **Top Decile Lift** | 2.17× |
 
 ### Key Features (by Importance)
 
@@ -400,12 +400,12 @@ import pandas as pd
 # Load trained model
 model = joblib.load("models/best_model.pkl")
 
-# New donor data (same 29 features: all feature columns except `target_available`)
+# New donor data (same 27 features: all feature columns except `target_available`)
 new_donor = pd.DataFrame({
     'age': [35],
     'days_since_last_donation': [45],
     'donor_tenure_days': [730],
-    # ... all 29 features ...
+    # ... all 27 features ...
 })
 
 # Predict probability
