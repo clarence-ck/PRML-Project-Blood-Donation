@@ -720,7 +720,7 @@ def build_app() -> gr.Blocks:
                     with gr.Row():
                         age = gr.Slider(
                             minimum=18,
-                            maximum=80,
+                            maximum=65,
                             value=defaults["age"],
                             step=1,
                             label="Age (years)",
