@@ -441,36 +441,36 @@ This MLOps stack ensures that:
 ```mermaid
 flowchart LR
     %% Developer & training
-    dev[Developer] -->|run training pipeline| train[Dataset.py\neda.py\nprocess_data.py\nsrc.models.tune\nsrc.pipeline.run]
+    dev[Developer] -->|run training pipeline| train[Dataset.py<br/>eda.py<br/>process_data.py<br/>src.models.tune<br/>src.pipeline.run]
     train -->|produces| model[(models/best_model.pkl)]
 
     %% Source control
     dev -->|git push main| repo[(GitHub Repo)]
 
     %% CI job
-    repo -->|push main\n(app/src/infra/model/Dockerfile/app_lambda/predict_example/tests)| ci[CI Job\n(ci-and-deploy-lambda.yml)]
-    ci -->|install deps + run tests| tests[pytest suite\ntest_api.py\ntest_data_schema.py\ntest_model_artifact.py\ntest_predict_example_payload.py]
-    ci -->|terraform init/fmt/validate/plan| tfPlan[Terraform plan\ninfra/*.tf]
+    repo -->|push to main (watched paths)| ci[CI Job<br/>(ci-and-deploy-lambda.yml)]
+    ci -->|run tests| tests[pytest suite<br/>test_api.py<br/>test_data_schema.py<br/>test_model_artifact.py<br/>test_predict_example_payload.py]
+    ci -->|terraform plan| tfPlan[Terraform plan<br/>infra/*.tf]
 
     %% Deploy decision
-    ci -->|set deploy_needed\n(non-test paths only)| decision{deploy_needed == true?}
-    decision -->|no (tests-only or docs)| endCI[End: CI only\nno deploy]
+    ci -->|set deploy_needed| decision{deploy_needed == true?}
+    decision -->|no (tests-only or docs)| endCI[End: CI only<br/>no deploy]
     decision -->|yes| deploy[Deploy Job]
 
     %% Build & push image
-    deploy -->|docker build\nusing Dockerfile| image[Lambda container image\n(FastAPI + Mangum + best_model.pkl)]
-    image -->|docker push| ecr[(Amazon ECR\naws_ecr_repository.app)]
+    deploy -->|docker build| image[Lambda container image<br/>(FastAPI + Mangum + best_model.pkl)]
+    image -->|docker push| ecr[(Amazon ECR<br/>aws_ecr_repository.app)]
 
     %% Lambda + API Gateway
-    ecr -->|image_uri| lambdaFn[AWS Lambda function\n(package_type = Image)]
-    lambdaFn <-->|invoke| apigw[HTTP API Gateway v2\nANY /{proxy+}]
+    ecr -->|image_uri| lambdaFn[AWS Lambda function<br/>(package_type = Image)]
+    lambdaFn <-->|invoke| apigw[HTTP API Gateway v2<br/>ANY /{proxy+}]
 
     %% Runtime requests
     client[Client / App] -->|HTTP /health,/predict| apigw
     apigw -->|proxy event v2.0| lambdaFn
-    lambdaFn -->|Mangum adapter| fastapi[FastAPI app\napp.main: /health, /predict]
+    lambdaFn -->|Mangum adapter| fastapi[FastAPI app<br/>app.main: /health, /predict]
     fastapi -->|load & use| model
 
     %% Post-deploy smoke test
-    deploy -->|curl /predict\nusing predict_example.json| apigw
+    deploy -->|curl /predict using predict_example.json| apigw
 ```
