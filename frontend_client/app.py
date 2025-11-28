@@ -7,6 +7,7 @@ donor return likelihood using the deployed ML model.
 from __future__ import annotations
 
 import datetime
+import logging
 import os
 import sys
 from pathlib import Path
@@ -15,6 +16,9 @@ from typing import Dict, Tuple
 import httpx
 import gradio as gr
 import pandas as pd
+from fastapi import FastAPI
+from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 # ---------------------------------------------------------------------------
 # Path setup for process_data imports
@@ -24,6 +28,8 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from process_data import REFERENCE_DATE, EDUCATION_MAPPING
+
+logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
 # Feature schema (must match app/main.py EXPECTED_FEATURES)
@@ -69,18 +75,198 @@ BLOOD_GROUP_DUMMIES = [
     "blood_group_O-",
 ]
 
+STATIC_DIR = Path(__file__).parent / "images"
+LOGO_STATIC_PATH = "/static/Blood_bank_SG_logo.png"
+FAVICON_STATIC_PATH = "/static/Blood_bank_SG_favicon.png"
+BANNER_IMAGE_PATH = STATIC_DIR / "Blood_bank_SG_banner.png"
+
+HEAD_META = f"""
+<meta property="og:title" content="Blood Donor Outreach Console" />
+<meta property="og:description" content="Score donor return likelihood and guide outreach actions." />
+<meta property="og:type" content="website" />
+<meta property="og:image" content="{LOGO_STATIC_PATH}" />
+<meta property="twitter:card" content="summary_large_image" />
+<meta property="twitter:title" content="Blood Donor Outreach Console" />
+<meta property="twitter:description" content="Predict donor return likelihood with AWS-hosted ML." />
+<meta property="twitter:image" content="{LOGO_STATIC_PATH}" />
+<link rel="icon" type="image/png" href="{FAVICON_STATIC_PATH}" />
+"""
+
+WEB_MANIFEST = {
+    "name": "Blood Donor Outreach Console",
+    "short_name": "Blood Outreach",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffe0cc",
+    "theme_color": "#8b0000",
+    "icons": [
+        {
+            "src": LOGO_STATIC_PATH,
+            "sizes": "192x192",
+            "type": "image/png",
+        },
+        {
+            "src": LOGO_STATIC_PATH,
+            "sizes": "512x512",
+            "type": "image/png",
+        },
+    ],
+}
+
+LANDING_PAGE_HTML = f"""
+<!DOCTYPE html>
+<html lang=\"en\">
+<head>
+    <meta charset=\"utf-8\" />
+    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />
+    {HEAD_META}
+    <title>Blood Donor Outreach Console</title>
+    <style>
+        body {{
+            margin: 0;
+            font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #fff5f5 0%, #ffe0cc 100%);
+            color: #2b2b2b;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }}
+        main {{
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }}
+        .card {{
+            background: #ffffff;
+            border-radius: 1.5rem;
+            box-shadow: 0 20px 60px rgba(139, 0, 0, 0.15);
+            max-width: 960px;
+            width: 100%;
+            padding: 3rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2.5rem;
+            text-align: center;
+            align-items: center;
+        }}
+        .hero {{
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }}
+        .value-props {{
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }}
+        .hero img {{
+            width: 120px;
+            height: 120px;
+            object-fit: contain;
+            border-radius: 1rem;
+            background: #fff0f0;
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+        }}
+        .hero h1 {{
+            font-size: 2.5rem;
+            color: #8b0000;
+            margin: 0 0 0.5rem 0;
+        }}
+        .cta {{
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: #c62828;
+            color: #fff;
+            padding: 0.9rem 1.75rem;
+            border-radius: 999px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 12px 24px rgba(198, 40, 40, 0.35);
+            margin-top: 1.5rem;
+        }}
+        .cta:hover {{
+            transform: translateY(-1px);
+            box-shadow: 0 16px 32px rgba(198, 40, 40, 0.4);
+        }}
+        .bullets {{
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+            align-items: center;
+            width: 100%;
+        }}
+        .bullets li {{
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            margin: 0;
+            font-size: 1rem;
+            color: #3e2723;
+            white-space: nowrap;
+            text-align: center;
+        }}
+        .bullet-icon {{
+            font-size: 1.25rem;
+        }}
+        .bullet-text {{
+            display: inline-block;
+        }}
+        footer {{
+            text-align: center;
+            padding: 1.5rem;
+            font-size: 0.95rem;
+            color: #6c6c6c;
+        }}
+    </style>
+</head>
+<body>
+    <main>
+        <div class=\"card\">
+            <div class=\"hero\">
+                <img src=\"{LOGO_STATIC_PATH}\" alt=\"Blood Bank Singapore logo\" />
+                <h1>Blood Donor Outreach Console</h1>
+                <p>
+                    Predict donor return likelihood, prioritize call lists, and surface
+                    outreach guidance powered by our AWS-hosted ML service.
+                </p>
+                <a class=\"cta\" href=\"/console\">Launch Console →</a>
+            </div>
+            <div class="value-props">
+                <ul class="bullets">
+                    <li><span class="bullet-icon">🧠</span><span class="bullet-text">Live ML scoring streamed from AWS.</span></li>
+                    <li><span class="bullet-icon">🎯</span><span class="bullet-text">Call tiers auto-ranked for coordinators.</span></li>
+                    <li><span class="bullet-icon">🛡️</span><span class="bullet-text">Built‑in validation prevents risky donor submissions.</span></li>
+                    <li><span class="bullet-icon">📡</span><span class="bullet-text">One-click API health and uptime checks.</span></li>
+                </ul>
+            </div>
+        </div>
+    </main>
+    <footer>Blood Donor Return Prediction · Singapore Blood Bank · {datetime.datetime.utcnow().year}</footer>
+</body>
+</html>
+"""
+
 
 def _default_form_values() -> Dict[str, object]:
     """Return the default values for all form inputs."""
 
     return {
         # Default age (years)
-        "age": 30.0,
-        "gender": "Female",
+        "age": 35.0,
+        "gender": "Male",
         "education_level": "University",
         "blood_group": "O+",
-        "first_donation_date": datetime.datetime(2020, 2, 10),
-        "last_donation_date": datetime.datetime(2025, 5, 1),
+        "first_donation_date": datetime.datetime(2024, 3, 20),
+        "last_donation_date": datetime.datetime(2024, 3, 20),
         "last_donation_volume_ml": 420,
         "donation_count_outram": 1,
         "donation_count_dhoby_ghaut": 0,
@@ -136,6 +322,21 @@ def _get_api_base_url() -> str:
     return base
 
 
+def _parse_date_input(value: object, field_name: str) -> pd.Timestamp:
+    """Coerce Gradio DateTime values (datetime/string/epoch) into timestamps."""
+    if value is None or value == "":
+        raise gr.Error(f"Please provide a value for {field_name}.")
+
+    try:
+        if isinstance(value, (int, float)):
+            return pd.to_datetime(value, unit="s")
+        return pd.to_datetime(value)
+    except (ValueError, TypeError) as exc:
+        raise gr.Error(
+            f"Could not interpret {field_name}. Please pick a valid calendar date."
+        ) from exc
+
+
 def _build_features_directly(
     age: float,
     gender: str,
@@ -158,8 +359,8 @@ def _build_features_directly(
     computing each feature explicitly.
     """
     # Parse dates
-    first_date = pd.to_datetime(first_donation_date)
-    last_date = pd.to_datetime(last_donation_date)
+    first_date = _parse_date_input(first_donation_date, "First donation date")
+    last_date = _parse_date_input(last_donation_date, "Last donation date")
     ref_date = REFERENCE_DATE
 
     # Basic temporal validation: first <= last <= REFERENCE_DATE
@@ -208,6 +409,15 @@ def _build_features_directly(
         raise gr.Error(
             "For a single donation, the first and last donation dates must be the same. "
             "Either adjust the dates to match or update the location counts."
+        )
+
+    # If there are two or more donations, require at least 84 days between each consecutive donation.
+    # With only the first/last dates captured, enforce the minimum cumulative span of 84*(n-1) days.
+    if n_donations >= 2 and (last_date - first_date).days < 84 * (n_donations - 1):
+        raise gr.Error(
+            "For donors with two or more donations, the span between the first and last "
+            "donation dates must be at least 84 days per interval (n-1 intervals total). "
+            "Please adjust the dates."
         )
 
     # Interval and frequency
@@ -349,9 +559,23 @@ def score_donor_form(
 ) -> Tuple[str, str, str, str]:
     """Score a donor and return formatted results."""
     
+    # Debug: print raw inputs received from Gradio
+    print(f"[DEBUG] Raw first_donation_date: {first_donation_date!r}")
+    print(f"[DEBUG] Raw last_donation_date: {last_donation_date!r}")
+    
     # Quick validation on locations + dates before feature engineering
-    first_date = pd.to_datetime(first_donation_date)
-    last_date = pd.to_datetime(last_donation_date)
+    # Gradio DateTime sends epoch floats (seconds since 1970), so parse with unit="s"
+    if isinstance(first_donation_date, (int, float)):
+        first_date = pd.to_datetime(first_donation_date, unit="s")
+    else:
+        first_date = pd.to_datetime(first_donation_date)
+    
+    if isinstance(last_donation_date, (int, float)):
+        last_date = pd.to_datetime(last_donation_date, unit="s")
+    else:
+        last_date = pd.to_datetime(last_donation_date)
+    
+    print(f"[DEBUG] Parsed first_date: {first_date}, last_date: {last_date}, span: {(last_date - first_date).days} days")
     location_counts = [
         donation_count_outram,
         donation_count_dhoby_ghaut,
@@ -371,6 +595,28 @@ def score_donor_form(
         raise gr.Error(
             "For a single donation, the first and last donation dates must be the same. "
             "Either adjust the dates to match or update the location counts."
+        )
+
+    n_donations = int(total_location)
+    span_days = (last_date - first_date).days
+    min_required_days = 84 * (n_donations - 1) if n_donations >= 2 else 0
+
+    logger.debug(
+        "Donation validation context",
+        extra={
+            "first_donation_date": first_date.isoformat(),
+            "last_donation_date": last_date.isoformat(),
+            "n_donations": n_donations,
+            "span_days": span_days,
+            "min_required_days": min_required_days,
+        },
+    )
+
+    if n_donations >= 2 and span_days < min_required_days:
+        raise gr.Error(
+            f"For {n_donations} donations, the span between first and last donation dates "
+            f"must be at least {min_required_days} days ({n_donations - 1} intervals × 84 days). "
+            f"Current span is {span_days} days. Please adjust the dates or location counts."
         )
 
     # Build features directly (no pandas dummies issues)
@@ -435,11 +681,12 @@ def build_app() -> gr.Blocks:
     with gr.Blocks(
         title="Blood Donor Outreach Console",
         theme=theme,
+        head=HEAD_META,
     ) as demo:
 
         # Header image
         gr.Image(
-            value="frontend_client/images/Blood_bank_SG_banner.png",
+            value=str(BANNER_IMAGE_PATH),
             show_label=False,
             interactive=False,
             width=960,
@@ -450,7 +697,7 @@ def build_app() -> gr.Blocks:
         gr.Markdown(
             """
             <div style="text-align: center; padding: 0.5rem 0 1rem 0;">
-                <h1 style="color: #8b0000; margin-bottom: 0.25rem;">🩸 Blood Donor Outreach Console</h1>
+                <h1 style="color: #8b0000; margin-bottom: 0.25rem;">🩸 Blood Donor Outreach Console 🖥️</h1>
                 <p style="color: #004b8d; font-size: 1.05rem;">
                     Score donor return likelihood and get outreach notification centre guidance
                 </p>
@@ -680,6 +927,30 @@ def build_app() -> gr.Blocks:
     return demo
 
 
+def create_fastapi_app() -> FastAPI:
+    """Create FastAPI wrapper with landing page + mounted Gradio console."""
+
+    fastapi_app = FastAPI(title="Blood Donor Outreach", version="1.0.0")
+    fastapi_app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+    gradio_app = build_app()
+    gr.mount_gradio_app(fastapi_app, gradio_app, path="/console")
+
+    @fastapi_app.get("/", response_class=HTMLResponse)
+    async def landing_page() -> HTMLResponse:  # pragma: no cover - simple HTML
+        return HTMLResponse(content=LANDING_PAGE_HTML)
+
+    @fastapi_app.get("/manifest.json", response_class=JSONResponse)
+    async def manifest() -> JSONResponse:  # pragma: no cover - static payload
+        return JSONResponse(content=WEB_MANIFEST)
+
+    return fastapi_app
+
+
+app = create_fastapi_app()
+
+
 if __name__ == "__main__":
-    app = build_app()
-    app.launch()
+    import uvicorn
+
+    uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", "7860")))

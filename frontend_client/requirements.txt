@@ -2,3 +2,5 @@ numpy==1.26.4
 pandas==2.2.3
 gradio==5.49.1
 httpx
+fastapi
+uvicorn
