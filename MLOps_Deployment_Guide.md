@@ -440,37 +440,29 @@ This MLOps stack ensures that:
 
 ```mermaid
 flowchart LR
-    %% Developer & training
-    dev[Developer] -->|run training pipeline| train[Dataset.py<br/>eda.py<br/>process_data.py<br/>src.models.tune<br/>src.pipeline.run]
-    train -->|produces| model[(models/best_model.pkl)]
+    dev[Developer] -->|train model| train[Training Pipeline]
+    train -->|produces| model[(best_model.pkl)]
 
-    %% Source control
-    dev -->|git push main| repo[(GitHub Repo)]
+    dev -->|git push| repo[(GitHub)]
 
-    %% CI job
-    repo -->|push to main - watched paths| ci[CI job]
-    ci -->|run tests| tests[pytest suite<br/>test_api.py<br/>test_data_schema.py<br/>test_model_artifact.py<br/>test_predict_example_payload.py]
-    ci -->|terraform plan| tfPlan[Terraform plan<br/>infra/*.tf]
+    repo -->|push to main| ci[CI Job]
+    ci -->|pytest| tests[Test Suite]
+    ci -->|validate| tfPlan[Terraform Plan]
 
-    %% Deploy decision
-    ci -->|set deploy_needed| decision{deploy_needed == true?}
-    decision -->|no deploy| endCI[End: CI only<br/>no deploy]
+    ci --> decision{deploy?}
+    decision -->|no| endCI[CI Only]
     decision -->|yes| deploy[Deploy Job]
 
-    %% Build & push image
-    deploy -->|docker build| image[Lambda container image<br/>FastAPI + Mangum + best_model.pkl]
-    image -->|docker push| ecr[(Amazon ECR<br/>aws_ecr_repository.app)]
+    deploy -->|docker build| image[Docker Image]
+    image -->|push| ecr[(ECR)]
 
-    %% Lambda + API Gateway
-    ecr -->|image_uri| lambdaFn[AWS Lambda function<br/>package_type = Image]
-    lambdaFn <-->|invoke| apigw[HTTP API Gateway v2<br/>ANY /{proxy+}]
+    ecr -->|image_uri| lambdaFn[Lambda Function]
+    lambdaFn <--> apigw[API Gateway]
 
-    %% Runtime requests
-    client[Client / App] -->|HTTP /health,/predict| apigw
-    apigw -->|proxy event v2.0| lambdaFn
-    lambdaFn -->|Mangum adapter| fastapi[FastAPI app<br/>app.main: /health, /predict]
-    fastapi -->|load & use| model
+    client[Client] -->|HTTP| apigw
+    apigw --> lambdaFn
+    lambdaFn -->|Mangum| fastapi[FastAPI]
+    fastapi -->|inference| model
 
-    %% Post-deploy smoke test
-    deploy -->|curl /predict using predict_example.json| apigw
+    deploy -->|smoke test| apigw
 ```
