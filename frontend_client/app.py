@@ -80,16 +80,20 @@ LOGO_STATIC_PATH = "/static/Blood_bank_SG_logo.png"
 FAVICON_STATIC_PATH = "/static/Blood_bank_SG_favicon.png"
 BANNER_IMAGE_PATH = STATIC_DIR / "Blood_bank_SG_banner.png"
 
+META_LOGO_URL = "https://incredible-pelican.static.domains/Blood_bank_SG_logo.png"
+META_FAVICON_URL = "https://incredible-pelican.static.domains/Blood_bank_SG_favicon.png"
+META_BANNER_URL = "https://incredible-pelican.static.domains/Blood_bank_SG_banner.png"
+
 HEAD_META = f"""
 <meta property="og:title" content="Blood Donor Outreach Console" />
 <meta property="og:description" content="Score donor return likelihood and guide outreach actions." />
 <meta property="og:type" content="website" />
-<meta property="og:image" content="{LOGO_STATIC_PATH}" />
+<meta property="og:image" content="{META_BANNER_URL}" />
 <meta property="twitter:card" content="summary_large_image" />
 <meta property="twitter:title" content="Blood Donor Outreach Console" />
 <meta property="twitter:description" content="Predict donor return likelihood with AWS-hosted ML." />
-<meta property="twitter:image" content="{LOGO_STATIC_PATH}" />
-<link rel="icon" type="image/png" href="{FAVICON_STATIC_PATH}" />
+<meta property="twitter:image" content="{META_BANNER_URL}" />
+<link rel="icon" type="image/png" href="{META_FAVICON_URL}" />
 """
 
 WEB_MANIFEST = {
