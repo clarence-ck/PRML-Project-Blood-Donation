@@ -1,15 +1,15 @@
 # MLOps & Deployment Guide
 
-This document describes how the trained donor-return model is packaged as a Docker image, exposed via a FastAPI application, deployed to AWS Lambda behind an HTTP API, and wired into a CI/CD workflow.
+This document walks through how the trained donor-return model is packaged as a Docker image, exposed via a FastAPI application, deployed to AWS Lambda behind an HTTP API Gateway, and wired into a Terraform-driven infrastructure plus CI/CD workflow.
 
-The focus here is on **serving and deployment**, not on model training (which is covered in the main README and ML_Pipeline_workflow docs).
+The focus here is on **serving and deployment**, not on model training (see the main README and ML_Pipeline_workflow docs for that portion).
 
 At a glance, this guide covers:
 
 - **Model packaging** – FastAPI service, model artifact, and dependencies bundled into a Lambda-compatible Docker image.
-- **Infrastructure** – Terraform-managed AWS resources (ECR, Lambda, HTTP API Gateway).
+- **Infrastructure-as-code** – Terraform-managed AWS services (ECR, IAM, Lambda, HTTP API Gateway, outputs).
 - **CI/CD** – GitHub Actions workflow that runs tests, validates infra, and updates the Lambda image when core files change.
-- **Runtime behavior** – A single Lambda function exposing `/health` and `/predict` endpoints via HTTP API.
+- **Runtime behavior** – A single Lambda function exposing `/health` and `/predict` endpoints through HTTP API Gateway.
 
 ---
 
@@ -119,11 +119,21 @@ handler = Mangum(app)
 
 ---
 
-## 2. Model Deployment to AWS Lambda
+## 2. Infrastructure & Deployment (Terraform + AWS)
 
-Infrastructure is defined with Terraform in the `infra/` directory (primarily `main.tf`, `ecr.tf`, `lambda.tf`, `api_gateway.tf`, and `outputs.tf`). Deployment itself is driven by the GitHub Actions workflow and AWS CLI.
+Infrastructure is defined declaratively with Terraform under `infra/`. The primary files are `main.tf`, `ecr.tf`, `lambda.tf`, `api_gateway.tf`, and `outputs.tf`. Terraform ensures environments are reproducible, versioned, and easy to audit, while deployment of the container image is triggered from CI/CD.
 
-### 2.1 Container Registry (Amazon ECR)
+### 2.1 Terraform Layout & Variables
+
+- **Provider setup (`main.tf`)**
+  - Requires Terraform `>= 1.5.0` and AWS provider `~> 5.0`.
+  - Configures the AWS region using `var.aws_region` (default `ap-southeast-1`).
+- **Service naming**
+  - `var.service_name` is the suffix/prefix applied to all AWS resources (default `donor-api`).
+  - `var.docker_image_tag` indicates which image tag Lambda should run (default `latest`).
+- These variables keep the stack consistent whether applied locally or from CI, and they align with the GitHub secrets used in the deploy workflow.
+
+### 2.2 Container Registry (Amazon ECR)
 
 **Location:** `infra/ecr.tf`
 
@@ -143,7 +153,7 @@ resource "aws_ecr_repository" "app" {
 - Enables image scanning on push.
 - `force_delete = true` allows cleanup even with images present (use carefully in production).
 
-### 2.2 Lambda Function (Image-based)
+### 2.3 IAM Role & Lambda Function (Image-based)
 
 **Location:** `infra/lambda.tf`
 
@@ -191,7 +201,7 @@ Key points:
 - Execution role has basic logging permissions via `AWSLambdaBasicExecutionRole`.
 - Timeouts and memory can be tuned based on model latency and size.
 
-### 2.3 HTTP API Gateway Integration
+### 2.4 HTTP API Gateway Integration
 
 **Location:** `infra/api_gateway.tf`
 
@@ -237,58 +247,52 @@ resource "aws_lambda_permission" "apigw" {
 - **Payload v2.0**: Mangum understands the HTTP API event format v2 and translates it into ASGI requests for FastAPI.
 - **Lambda permission**: grants API Gateway permission to invoke the Lambda function.
 
----
+### 2.5 Terraform Outputs
 
-### 2.4 Terraform Provisioning (Windows, AMD64)
+**Location:** `infra/outputs.tf`
 
-This project assumes you have Terraform installed locally and AWS credentials configured. Below is a minimal, Windows-focused setup.
+```hcl
+output "ecr_repository_url" {
+  description = "ECR repository URL for the donor API image"
+  value       = aws_ecr_repository.app.repository_url
+}
 
-#### 2.4.1 Install Terraform on Windows (AMD64)
+output "lambda_function_name" {
+  description = "Name of the deployed Lambda function"
+  value       = aws_lambda_function.app.function_name
+}
 
-1. Go to the official Terraform downloads page: <https://developer.hashicorp.com/terraform/downloads>.
-2. Download the **Windows 64-bit (AMD64)** ZIP.
-3. Extract `terraform.exe` to a folder of your choice, for example:
-   - `C:\Program Files\Hashicorp\Terraform`.
-4. Add that folder to your **PATH**:
-   - Start Menu → search for "Environment Variables" → "Edit the system environment variables".
-   - Click **Environment Variables…** → under **System variables**, select **Path** → **Edit…**.
-   - **New** → add `C:\Program Files\Hashicorp\Terraform` → **OK** to close all dialogs.
-5. Open a new PowerShell or Command Prompt and verify:
-   - `terraform -version`
-
-Terraform should now be available in any shell.
-
-#### 2.4.2 Configure AWS credentials locally
-
-Terraform (and the AWS CLI) need AWS credentials with permissions to create ECR, Lambda, and API Gateway resources.
-
-1. Install the AWS CLI for Windows if you don’t have it: <https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html>.
-2. Run in PowerShell:
-
-   ```powershell
-   aws configure
-   ```
-
-   and provide:
-
-   - **AWS Access Key ID**
-   - **AWS Secret Access Key**
-   - **Default region name** (should match or be compatible with `var.aws_region` in `infra/main.tf`, e.g. `ap-southeast-1`).
-
-This writes credentials to `%UserProfile%\.aws\credentials`, which Terraform uses via the AWS provider.
-
-To provision the infra manually (outside CI):
-
-```powershell
-cd infra
-terraform init
-terraform plan
-terraform apply
+output "http_api_invoke_url" {
+  description = "Invoke URL for the HTTP API (proxying to Lambda)"
+  value       = aws_apigatewayv2_stage.default.invoke_url
+}
 ```
 
-> Note: In this repo, the GitHub Actions workflow only runs `terraform plan` for validation; applying changes is expected to be a conscious, manual step.
+These outputs feed both manual operators (e.g., quickly retrieving the invoke URL) and the GitHub Actions deploy job via repository secrets.
 
-#### 2.4.3 Configure AWS-related GitHub secrets
+### 2.6 Provisioning Locally & Preparing Credentials
+
+This project assumes you have Terraform installed and AWS credentials configured with permissions for ECR, IAM, Lambda, and API Gateway. General steps:
+
+1. **Install Terraform**
+   - Download from <https://developer.hashicorp.com/terraform/downloads> and place the binary on your PATH (on Windows, `C:\Program Files\Hashicorp\Terraform` is a common location).
+   - Confirm availability with `terraform -version`.
+2. **Configure AWS credentials**
+   - Install the AWS CLI (<https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html>).
+   - Run `aws configure` and supply an access key, secret key, and default region (should match `var.aws_region`, e.g., `ap-southeast-1`). This populates `%UserProfile%\.aws\credentials` on Windows (or `~/.aws/credentials` on Unix-like systems), which Terraform reads automatically.
+3. **Apply Terraform (manual run)**
+   - From the repo root:
+
+     ```powershell
+     cd infra
+     terraform init
+     terraform plan
+     terraform apply
+     ```
+
+   - The CI workflow only runs `terraform plan` for validation; applying changes is intentionally manual to avoid accidental infrastructure drift.
+
+#### Configure AWS-related GitHub secrets
 
 The CI/CD workflow `.github/workflows/ci-and-deploy-lambda.yml` expects several secrets at the **repository** level. In GitHub:
 
@@ -300,7 +304,7 @@ The CI/CD workflow `.github/workflows/ci-and-deploy-lambda.yml` expects several 
 - `AWS_REGION` – must match the region used by Terraform (e.g. `ap-southeast-1`).
 - `ECR_REPOSITORY_NAME` – should match `var.service_name` in `infra/main.tf` (default `donor-api`) or the actual ECR repository name.
 - `LAMBDA_FUNCTION_NAME` – should match the deployed Lambda’s name (by default also `donor-api`).
-- `HTTP_API_INVOKE_URL` – the invoke URL of the deployed HTTP API (you can obtain it from `terraform output http_api_invoke_url`).
+- `HTTP_API_INVOKE_URL` – the invoke URL of the deployed HTTP API (obtain via `terraform output http_api_invoke_url`).
 
 These secrets are used by the workflow to:
 
