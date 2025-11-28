@@ -80,7 +80,6 @@ LOGO_STATIC_PATH = "/static/Blood_bank_SG_logo.png"
 FAVICON_STATIC_PATH = "/static/Blood_bank_SG_favicon.png"
 BANNER_IMAGE_PATH = STATIC_DIR / "Blood_bank_SG_banner.png"
 
-META_LOGO_URL = "https://incredible-pelican.static.domains/Blood_bank_SG_logo.png"
 META_FAVICON_URL = "https://incredible-pelican.static.domains/Blood_bank_SG_favicon.png"
 META_BANNER_URL = "https://incredible-pelican.static.domains/Blood_bank_SG_banner.png"
 
