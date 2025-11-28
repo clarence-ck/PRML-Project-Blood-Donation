@@ -8,17 +8,12 @@ Provides resampling techniques to address class imbalance:
 """
 
 from __future__ import annotations
-
-from typing import Tuple
-
 import numpy as np
 import pandas as pd
 from imblearn.over_sampling import SMOTE
 from imblearn.pipeline import Pipeline as ImbPipeline
-from sklearn.pipeline import Pipeline
 
 from src.features.preprocess import build_preprocessor
-
 
 def create_smote_pipeline(estimator, *, scale_numeric: bool, smote_variant: str = "smote") -> ImbPipeline:
     """Create a pipeline with SMOTE resampling.
@@ -26,7 +21,7 @@ def create_smote_pipeline(estimator, *, scale_numeric: bool, smote_variant: str 
     Args:
         estimator: The classifier to use
         scale_numeric: Whether to scale numeric features
-        smote_variant: Type of SMOTE ('smote', 'adasyn', 'borderline', 'random')
+        smote_variant: Type of SMOTE ('smote')
     
     Returns:
         Pipeline with preprocessing, SMOTE, and classifier
