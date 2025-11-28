@@ -11,6 +11,7 @@ on:
       - 'Dockerfile'
       - 'app_lambda.py'
       - 'predict_example.json'
+      - 'tests/**'
   workflow_dispatch:          # allow manual runs from GitHub UI
 
 permissions:
@@ -21,10 +22,44 @@ jobs:
   ci:
     name: Continuous Integration
     runs-on: ubuntu-latest
+    outputs:
+      deploy_needed: ${{ steps.deploy_decision.outputs.deploy_needed }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Decide if deploy is needed
+        id: deploy_decision
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "deploy_needed=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          BEFORE="${{ github.event.before }}"
+          if [ -z "$BEFORE" ] || [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
+            CHANGED_FILES=$(git ls-files)
+          else
+            CHANGED_FILES=$(git diff --name-only "$BEFORE" "${{ github.sha }}")
+          fi
+
+          echo "Changed files:"
+          echo "$CHANGED_FILES"
+
+          DEPLOY=false
+          for path in $CHANGED_FILES; do
+            case "$path" in
+              app/*|src/*|infra/*|models/best_model.pkl|Dockerfile|app_lambda.py|predict_example.json)
+                DEPLOY=true
+                break
+                ;;
+            esac
+          done
+
+          echo "deploy_needed=$DEPLOY" >> "$GITHUB_OUTPUT"
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -70,9 +105,7 @@ jobs:
   deploy:
     name: Build & push Lambda image, update function
     needs: ci
-    if: >-
-      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
-      github.event_name == 'workflow_dispatch'
+    if: needs.ci.outputs.deploy_needed == 'true'
     runs-on: ubuntu-latest
 
     env:
