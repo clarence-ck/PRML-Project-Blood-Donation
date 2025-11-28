@@ -3,6 +3,14 @@ name: CI and Deploy Lambda
 on:
   push:
     branches: [ main ]       # run on every push to main
+    paths:
+      - 'app/**'
+      - 'src/**'
+      - 'infra/**'
+      - 'models/best_model.pkl'
+      - 'Dockerfile'
+      - 'app_lambda.py'
+      - 'predict_example.json'
   workflow_dispatch:          # allow manual runs from GitHub UI
 
 permissions:
@@ -62,6 +70,9 @@ jobs:
   deploy:
     name: Build & push Lambda image, update function
     needs: ci
+    if: >-
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
 
     env:
