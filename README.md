@@ -356,7 +356,7 @@ PRML-Project-Blood-Donation/
 
 ### Hyperparameter Tuning
 
-To optimize model hyperparameters before final training:
+To optimize model hyperparameters before final training (optional but recommended):
 
 ```bash
 python -m src.models.tune
@@ -366,7 +366,7 @@ This performs RandomizedSearchCV followed by HalvingGridSearchCV for each candid
 Typical end-to-end training sequence:
 
 ```bash
-python -m src.models.tune    # one-time (or occasional) hyperparameter search
+python -m src.models.tune    # one-time (or occasional, optional but recommended) hyperparameter search
 python -m src.pipeline.run   # train/evaluate all models and select the best
 ```
 
