@@ -145,7 +145,8 @@ Transforms raw data into model-ready features **based on EDA findings**.
 **Operations:**
 1. **Drop PII:** Remove donor_id, name, email, contact, password
 2. **Engineer temporal features:**
-   - `age` = (reference_date - date_of_birth) / 365.25
+   - All temporal variables are computed relative to a fixed snapshot `REFERENCE_DATE = 2025-11-30` so that both training and inference share the same "today".
+   - `age` = (REFERENCE_DATE - date_of_birth) / 365.25
    - `days_since_last_donation` = days since last donation (recency)
    - `donor_tenure_days` = last_donation - first_donation (engagement span)
    - `mean_donation_interval_days` = tenure / (count - 1)
