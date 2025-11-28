@@ -29,8 +29,11 @@ jobs:
           pip install -r app/requirements.txt
           pip install pytest
 
-      - name: Run tests
-        run: pytest
+      - name: Run core tests
+        run: pytest tests/test_api.py tests/test_data_schema.py tests/test_model_artifact.py
+
+      - name: Run predict_example.json smoke test
+        run: pytest tests/test_predict_example_payload.py
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
@@ -96,3 +99,36 @@ jobs:
           aws lambda update-function-code \
             --function-name "$LAMBDA_FUNCTION_NAME" \
             --image-uri "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+
+      - name: Post-deploy Lambda /predict smoke test
+        env:
+          HTTP_API_INVOKE_URL: ${{ secrets.HTTP_API_INVOKE_URL }}
+        run: |
+          sudo apt-get update && sudo apt-get install -y jq
+          URL="${HTTP_API_INVOKE_URL%/}/predict"
+          BODY="$(cat predict_example.json)"
+          HTTP_CODE=$(curl -s -w "%{http_code}" -o response.json \
+            -H "Content-Type: application/json" \
+            -X POST "$URL" \
+            -d "$BODY")
+
+          echo "Status: $HTTP_CODE"
+          cat response.json
+
+          if [ "$HTTP_CODE" -ne 200 ]; then
+            echo "Expected HTTP 200 from Lambda, got $HTTP_CODE" >&2
+            exit 1
+          fi
+
+          PROB=$(jq '.probability' response.json)
+          PRED=$(jq '.prediction' response.json)
+
+          awk "BEGIN {exit !($PROB >= 0 && $PROB <= 1)}" || {
+            echo "probability out of [0,1] range: $PROB" >&2
+            exit 1
+          }
+
+          if [ "$PRED" -ne 0 ] && [ "$PRED" -ne 1 ]; then
+            echo "prediction must be 0 or 1, got $PRED" >&2
+            exit 1
+          fi
