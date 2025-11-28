@@ -1,6 +1,6 @@
 """Blood Donor Outreach Console - Gradio Frontend.
 
-A modern, user-friendly interface for outreach notification centre staff to score
+A modern, user-friendly interface for outreach notification staff to score
 donor return likelihood using the deployed ML model.
 """
 
@@ -702,7 +702,7 @@ def build_app() -> gr.Blocks:
             <div style="text-align: center; padding: 0.5rem 0 1rem 0;">
                 <h1 style="color: #8b0000; margin-bottom: 0.25rem;">🩸 Blood Donor Outreach Console 🖥️</h1>
                 <p style="color: #004b8d; font-size: 1.05rem;">
-                    Score donor return likelihood and get outreach notification centre guidance
+                    Score donor return likelihood and get outreach notification guidance
                 </p>
             </div>
             """
