@@ -441,7 +441,7 @@ This MLOps stack ensures that:
 ```mermaid
 flowchart LR
     subgraph Training
-        dev[Developer] -->|run pipeline| train[Dataset.py<br/>process_data.py<br/>src.pipeline.run]
+        dev[Developer] -->|run pipeline| train[Dataset.py<br/>process_data.py<br/>src.models.tune<br/>src.pipeline.run]
         train -->|produces| model[(best_model.pkl)]
     end
 
