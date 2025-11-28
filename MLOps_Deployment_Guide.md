@@ -321,6 +321,8 @@ Triggers:
   - `app/**`, `src/**`, `infra/**`, `models/best_model.pkl`, `Dockerfile`, `app_lambda.py`, `predict_example.json`, `tests/**`.
 - On manual `workflow_dispatch`.
 
+> Note: **tests-only changes** (files under `tests/**` with no other changes) still run the CI job, but they do **not** set `deploy_needed=true`, so the deploy job is skipped.
+
 Steps:
 
 - **Checkout code**
