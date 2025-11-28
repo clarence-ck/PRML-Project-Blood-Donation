@@ -4,6 +4,13 @@ This document describes how the trained donor-return model is packaged as a Dock
 
 The focus here is on **serving and deployment**, not on model training (which is covered in the main README and ML_Pipeline_workflow docs).
 
+At a glance, this guide covers:
+
+- **Model packaging** – FastAPI service, model artifact, and dependencies bundled into a Lambda-compatible Docker image.
+- **Infrastructure** – Terraform-managed AWS resources (ECR, Lambda, HTTP API Gateway).
+- **CI/CD** – GitHub Actions workflow that runs tests, validates infra, and updates the Lambda image when core files change.
+- **Runtime behavior** – A single Lambda function exposing `/health` and `/predict` endpoints via HTTP API.
+
 ---
 
 ## 1. Model Packaging
@@ -114,7 +121,7 @@ handler = Mangum(app)
 
 ## 2. Model Deployment to AWS Lambda
 
-Infrastructure is defined with Terraform in the `infra/` directory. Deployment itself is driven by the GitHub Actions workflow and AWS CLI.
+Infrastructure is defined with Terraform in the `infra/` directory (primarily `main.tf`, `ecr.tf`, `lambda.tf`, `api_gateway.tf`, and `outputs.tf`). Deployment itself is driven by the GitHub Actions workflow and AWS CLI.
 
 ### 2.1 Container Registry (Amazon ECR)
 
@@ -330,7 +337,7 @@ Steps:
 
 - **Decide if deploy is needed**
   - Compares changed files between `before` and `after` commits.
-  - Sets `deploy_needed` output to `true` if any of the key paths changed, or if manually triggered.
+  - Sets `deploy_needed` output to `true` if any of the non-test key paths changed (`app/*`, `src/*`, `infra/*`, `models/best_model.pkl`, `Dockerfile`, `app_lambda.py`, `predict_example.json`), or if manually triggered.
 
 - **Python setup + dependencies**
   - Uses Python 3.11.
@@ -415,10 +422,10 @@ End-to-end deployment view:
    - Updates the existing Lambda function to use the new image.
 
 5. **Runtime serving**
-   - API Gateway HTTP API receives `/predict` requests.
+   - API Gateway HTTP API receives `/health` and `/predict` requests.
    - Forwards them (via proxy integration) to the Lambda container.
    - Mangum converts the event into an ASGI request for FastAPI.
-   - FastAPI routes to `/predict`, uses `best_model.pkl` to compute the prediction, and returns a JSON response.
+   - FastAPI routes to the appropriate endpoint, uses `best_model.pkl` for inference on `/predict`, and returns a JSON response.
 
 This MLOps stack ensures that:
 
@@ -426,3 +433,44 @@ This MLOps stack ensures that:
 - **Schema consistency** between training and serving is enforced by shared feature definitions and tests.
 - **CI** prevents regressions in the API, data, and model artifacts.
 - **CD** automatically rolls out a new model version to Lambda when relevant files change and tests pass.
+
+---
+
+## 5. MLOps Architecture (Mermaid Diagram)
+
+```mermaid
+flowchart LR
+    %% Developer & training
+    dev[Developer] -->|run training pipeline| train[Dataset.py\neda.py\nprocess_data.py\nsrc.models.tune\nsrc.pipeline.run]
+    train -->|produces| model[(models/best_model.pkl)]
+
+    %% Source control
+    dev -->|git push main| repo[(GitHub Repo)]
+
+    %% CI job
+    repo -->|push main\n(app/src/infra/model/Dockerfile/app_lambda/predict_example/tests)| ci[CI Job\n(ci-and-deploy-lambda.yml)]
+    ci -->|install deps + run tests| tests[pytest suite\ntest_api.py\ntest_data_schema.py\ntest_model_artifact.py\ntest_predict_example_payload.py]
+    ci -->|terraform init/fmt/validate/plan| tfPlan[Terraform plan\ninfra/*.tf]
+
+    %% Deploy decision
+    ci -->|set deploy_needed\n(non-test paths only)| decision{deploy_needed == true?}
+    decision -->|no (tests-only or docs)| endCI[End: CI only\nno deploy]
+    decision -->|yes| deploy[Deploy Job]
+
+    %% Build & push image
+    deploy -->|docker build\nusing Dockerfile| image[Lambda container image\n(FastAPI + Mangum + best_model.pkl)]
+    image -->|docker push| ecr[(Amazon ECR\naws_ecr_repository.app)]
+
+    %% Lambda + API Gateway
+    ecr -->|image_uri| lambdaFn[AWS Lambda function\n(package_type = Image)]
+    lambdaFn <-->|invoke| apigw[HTTP API Gateway v2\nANY /{proxy+}]
+
+    %% Runtime requests
+    client[Client / App] -->|HTTP /health,/predict| apigw
+    apigw -->|proxy event v2.0| lambdaFn
+    lambdaFn -->|Mangum adapter| fastapi[FastAPI app\napp.main: /health, /predict]
+    fastapi -->|load & use| model
+
+    %% Post-deploy smoke test
+    deploy -->|curl /predict\nusing predict_example.json| apigw
+```
