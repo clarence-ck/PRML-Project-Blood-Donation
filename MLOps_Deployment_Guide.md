@@ -448,7 +448,7 @@ flowchart LR
     dev -->|git push main| repo[(GitHub Repo)]
 
     %% CI job
-    repo -->|push to main - watched paths| ci[CI Job<br/>(ci-and-deploy-lambda.yml)]
+    repo -->|push to main - watched paths| ci[CI job]
     ci -->|run tests| tests[pytest suite<br/>test_api.py<br/>test_data_schema.py<br/>test_model_artifact.py<br/>test_predict_example_payload.py]
     ci -->|terraform plan| tfPlan[Terraform plan<br/>infra/*.tf]
 
@@ -458,11 +458,11 @@ flowchart LR
     decision -->|yes| deploy[Deploy Job]
 
     %% Build & push image
-    deploy -->|docker build| image[Lambda container image<br/>(FastAPI + Mangum + best_model.pkl)]
+    deploy -->|docker build| image[Lambda container image<br/>FastAPI + Mangum + best_model.pkl]
     image -->|docker push| ecr[(Amazon ECR<br/>aws_ecr_repository.app)]
 
     %% Lambda + API Gateway
-    ecr -->|image_uri| lambdaFn[AWS Lambda function<br/>(package_type = Image)]
+    ecr -->|image_uri| lambdaFn[AWS Lambda function<br/>package_type = Image]
     lambdaFn <-->|invoke| apigw[HTTP API Gateway v2<br/>ANY /{proxy+}]
 
     %% Runtime requests
