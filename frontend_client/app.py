@@ -247,7 +247,7 @@ LANDING_PAGE_HTML = f"""
                 <ul class="bullets">
                     <li><span class="bullet-icon">🧠</span><span class="bullet-text">Live ML scoring streamed from AWS.</span></li>
                     <li><span class="bullet-icon">🎯</span><span class="bullet-text">Call tiers auto-ranked for coordinators.</span></li>
-                    <li><span class="bullet-icon">🛡️</span><span class="bullet-text">Built‑in validation prevents risky donor submissions.</span></li>
+                    <li><span class="bullet-icon">🛡️</span><span class="bullet-text">Temporal validation logic built-in.</span></li>
                     <li><span class="bullet-icon">📡</span><span class="bullet-text">One-click API health and uptime checks.</span></li>
                 </ul>
             </div>
