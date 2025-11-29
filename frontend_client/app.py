@@ -253,7 +253,7 @@ LANDING_PAGE_HTML = f"""
             </div>
         </div>
     </main>
-    <footer>Blood Donor Return Prediction · Singapore Blood Bank · {datetime.datetime.utcnow().year}</footer>
+    <footer>Blood Donor Return Prediction · Singapore Blood Bank · {datetime.datetime.now(datetime.timezone.utc).year}</footer>
 </body>
 </html>
 """
