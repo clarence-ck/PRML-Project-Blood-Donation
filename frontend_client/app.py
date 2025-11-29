@@ -380,11 +380,6 @@ def _build_features_directly(
 
     # Temporal features
     age = float(age)
-    if age < 18:
-        raise gr.Error(
-            "Donor must be at least 18 years old as of 2025-11-30. "
-            "Please enter an age of at least 18 years.",
-        )
     days_since_last_donation = (ref_date - last_date).days
     donor_tenure_days = (last_date - first_date).days
 
