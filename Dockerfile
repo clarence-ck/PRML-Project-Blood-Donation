@@ -1,12 +1,12 @@
-FROM public.ecr.aws/lambda/python:3.11
+FROM public.ecr.aws/lambda/python:3.11-al2023
 
 WORKDIR /var/task
 
-# Install build tooling (gcc10) required for compiling newer numpy/pandas releases
-RUN yum install -y gcc10 gcc10-c++ gcc10-gfortran make \
-    && yum clean all
+# Install build tooling required for compiling scientific Python sdists if wheels are unavailable
+RUN dnf install -y gcc gcc-c++ gcc-gfortran make \
+    && dnf clean all
 
-ENV CC=gcc10 CXX=g++10 FC=gfortran10
+ENV CC=gcc CXX=g++ FC=gfortran
 
 COPY app/requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
