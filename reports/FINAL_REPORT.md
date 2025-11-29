@@ -1,6 +1,6 @@
 # Blood Donor Return Prediction - Final Analysis Report
 
-**Generated:** 2025-11-27 23:49:10
+**Generated:** 2025-11-30 02:49:46
 
 ---
 
@@ -44,13 +44,13 @@
 |-------|--------|
 | adaboost | 0.8647 |
 | lightgbm | 0.8202 |
-| logistic_regression | 0.7444 |
-| logistic_regression_smote | 0.7413 |
+| logistic_regression | 0.7443 |
+| logistic_regression_smote | 0.7416 |
 | random_forest | 0.8610 |
 | random_forest_smote | 0.8343 |
-| svm_linear | 0.8634 |
+| svm_linear | 0.8632 |
 | xgboost | 0.8638 |
-| xgboost_smote | 0.8496 |
+| xgboost_smote | 0.8450 |
 
 In addition to SMOTE-based pipelines, several baseline models (e.g. logistic_regression, svm_linear, random_forest, lightgbm) use `class_weight="balanced"` or native class weighting so the minority class is up-weighted without resampling the data.
 
@@ -58,15 +58,15 @@ In addition to SMOTE-based pipelines, several baseline models (e.g. logistic_reg
 
 | Model | CV F1 | Val F1 | Test F1 | Test Recall | Test PR-AUC | Test Lift |
 |-------|-------|--------|---------|-------------|-------------|------------|
-| logistic_regression | 0.7397 | 0.7430 | 0.7444 | 0.6561 | 0.8796 | 2.06 |
+| logistic_regression | 0.7397 | 0.7426 | 0.7443 | 0.6560 | 0.8796 | 2.06 |
 | random_forest | 0.8604 | 0.8589 | 0.8610 | 0.9611 | 0.8845 | 2.04 |
 | adaboost | 0.8658 | 0.8647 | 0.8647 | 0.9819 | 0.8902 | 2.17 |
-| svm_linear | 0.8632 | 0.8619 | 0.8634 | 0.9668 | 0.8791 | 2.04 |
+| svm_linear | 0.8635 | 0.8620 | 0.8632 | 0.9672 | 0.8790 | 2.04 |
 | xgboost | 0.8634 | 0.8639 | 0.8638 | 0.9594 | 0.8936 | 2.20 |
 | lightgbm | 0.8213 | 0.8140 | 0.8202 | 0.8195 | 0.8712 | 1.93 |
-| logistic_regression_smote | 0.7353 | 0.7394 | 0.7413 | 0.6530 | 0.8773 | 2.01 |
+| logistic_regression_smote | 0.7352 | 0.7391 | 0.7416 | 0.6534 | 0.8773 | 2.01 |
 | random_forest_smote | 0.8302 | 0.8315 | 0.8343 | 0.8667 | 0.8721 | 1.84 |
-| xgboost_smote | 0.8418 | 0.8456 | 0.8496 | 0.9024 | 0.8725 | 1.98 |
+| xgboost_smote | 0.8395 | 0.8424 | 0.8450 | 0.8853 | 0.8733 | 1.98 |
 
 ## Evaluation Visualizations
 

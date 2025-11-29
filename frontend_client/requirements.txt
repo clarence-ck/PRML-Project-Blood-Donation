@@ -1,6 +1,7 @@
-numpy==2.3.5
+numpy==1.26.4
 pandas==2.3.3
 gradio==5.49.1
-httpx
-fastapi
-uvicorn
+httpx==0.28.1
+fastapi==0.121.1
+uvicorn==0.35.0
+gradio-calendar==0.0.6

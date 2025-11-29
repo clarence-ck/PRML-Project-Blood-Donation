@@ -21,7 +21,7 @@
       "bottom_decile_rate": 0.4503950834064969,
       "lift": 2.128654970760234
     },
-    "brier_score": 0.1714788876626223,
+    "brier_score": 0.1714788876626225,
     "plots": {
       "confusion_matrix": "reports\\evaluation\\figures\\confusion_matrix_validation.png",
       "roc_curve": "reports\\evaluation\\figures\\roc_curve_validation.png",
@@ -125,7 +125,7 @@
       "bottom_decile_rate": 0.43898156277436345,
       "lift": 2.168
     },
-    "brier_score": 0.17084440513580465,
+    "brier_score": 0.17084440513580487,
     "plots": {
       "confusion_matrix": "reports\\evaluation\\figures\\confusion_matrix_test.png",
       "roc_curve": "reports\\evaluation\\figures\\roc_curve_test.png",

@@ -1,12 +1,6 @@
-FROM public.ecr.aws/lambda/python:3.11-al2023
+FROM public.ecr.aws/lambda/python:3.11
 
 WORKDIR /var/task
-
-# Install build tooling required for compiling scientific Python sdists if wheels are unavailable
-RUN dnf install -y gcc gcc-c++ gcc-gfortran make \
-    && dnf clean all
-
-ENV CC=gcc CXX=g++ FC=gfortran
 
 COPY app/requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt

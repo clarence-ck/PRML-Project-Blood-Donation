@@ -85,8 +85,9 @@ python eda.py
 # 3. Feature engineering (based on EDA insights)
 python process_data.py
 
-# 4. Train all models and select the best
-python -m src.pipeline.run
+# 4. Tune hyperparameters, then train and select the best
+python -m src.models.tune    # randomized + halving searches, saves tuned estimators under models/tuned/
+python -m src.pipeline.run   # trains all candidates (using tuned configs when available)
 
 # 5. Generate comprehensive analysis reports
 python -m src.analysis.run_all
@@ -171,9 +172,10 @@ Transforms raw data into model-ready features **based on EDA findings**.
 
 ---
 
-### Step 4: Model Training (`src.pipeline.run`)
+### Step 4: Model Training (`src.models.tune` + `src.pipeline.run`)
 
-Trains **9 candidate models** with rigorous evaluation, selects the best based on performance criteria.
+1. **`python -m src.models.tune`:** runs a two-phase hyperparameter search (RandomizedSearchCV → HalvingGridSearchCV) for every candidate model using 4-fold stratified CV on F1-score, and saves the tuned pipelines to `models/tuned/`.
+2. **`python -m src.pipeline.run`:** loads any tuned pipelines if present, then trains **9 candidate models** with rigorous evaluation and selects the best based on performance criteria.
 
 #### Candidates Trained
 

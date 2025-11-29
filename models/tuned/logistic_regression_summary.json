@@ -1,6 +1,6 @@
 {
   "best_params": {
-    "model__C": 11.678607345450606
+    "model__C": 23.357214690901213
   },
   "subsample_fraction": 0.5,
   "cv_folds": 4,
