@@ -278,6 +278,11 @@ Automated verification that all project requirements are met:
 
 ## 📈 Results
 
+### Data & Split Overview
+- **Synthetic dataset:** 75,978 rows × 22 columns (`reports/eda/eda_summary.json`)
+- **Class balance:** 75.79% "Yes" vs. 24.21% "No" (imbalance ratio 3.13:1)
+- **Splits:** Stratified 70/15/15 train/validation/test via `src/data/splits.py`
+
 ### Model Performance (Test Set)
 
 | Metric | Value |
@@ -289,6 +294,8 @@ Automated verification that all project requirements are met:
 | **ROC-AUC** | 73.9% |
 | **PR-AUC** | 89.0% |
 | **Top Decile Lift** | 2.17× |
+
+**Best model:** AdaBoost (400 estimators) selected via composite score (normalized recall + lift) per `models/all_model_results.json`.
 
 ### Key Features (by Importance)
 
@@ -303,6 +310,7 @@ Automated verification that all project requirements are met:
 - ✅ No significant bias detected across blood groups
 - ✅ Gender performance is equitable (Male ≈ Female)
 - ✅ Age bands within 5% performance range
+- Decile lift spans **1.71×–3.09×** across blood groups and **1.71×–2.52×** across age bands (see `reports/subgroup_analysis.json` for subgroup-specific metrics)
 
 ---
 
@@ -311,46 +319,48 @@ Automated verification that all project requirements are met:
 ```
 PRML-Project-Blood-Donation/
 │
-├── Dataset.py                      # Synthetic data generator
-├── eda.py                          # Exploratory data analysis
-├── process_data.py                 # Feature engineering pipeline
-├── environment.yml                 # Conda environment spec
+├── Dataset.py                       # Synthetic data generator
+├── eda.py                           # Exploratory data analysis
+├── process_data.py                  # Feature engineering pipeline
+├── environment.yml                  # Conda environment spec
 │
 ├── src/
 │   ├── data/
-│   │   └── splits.py              # Train/val/test partitioning
+│   │   └── splits.py               # Validates schema + stratified 70/15/15 splits (dataclass interface)
 │   ├── features/
-│   │   ├── preprocess.py          # Preprocessing utilities
-│   │   └── imbalance.py           # SMOTE pipeline factory
+│   │   ├── preprocess.py           # Central feature manifest + ColumnTransformer builders
+│   │   └── imbalance.py            # SMOTE pipeline factory + class distribution diagnostics
 │   ├── models/
-│   │   ├── candidates.py          # Model definitions (9 candidates)
-│   │   └── tune.py                # Hyperparameter tuning for candidate models
+│   │   ├── candidates.py           # 9 baseline + SMOTE pipelines (LogReg, RF, AdaBoost, SVM, XGB, LGBM)
+│   │   └── tune.py                 # RandomizedSearchCV → HalvingGridSearchCV, saves tuned artifacts per model
 │   ├── evaluation/
-│   │   └── metrics.py             # Evaluation metrics
+│   │   └── metrics.py              # Shared metric dataclass + decile lift utilities
 │   ├── pipeline/
-│   │   └── run.py                 # Training orchestrator
+│   │   └── run.py                  # Training orchestrator w/ CV logging, composite scoring, artifact export
 │   └── analysis/
-│       ├── evaluation.py          # Performance plots
-│       ├── interpretability.py    # Feature-importance analysis 
-│       ├── subgroups.py           # Fairness auditing 
-│       ├── report_generator.py    # Markdown report builder
-│       ├── validate_criteria.py   # Requirements checker
-│       └── run_all.py             # Post-training orchestrator
+│       ├── evaluation.py           # Loads best model, generates ROC/PR/calibration/decile plots + JSON summary
+│       ├── interpretability.py     # Permutation importance (val split)
+│       ├── subgroups.py            # Fairness diagnostics on gender/age/blood-group
+│       ├── report_generator.py     # Assembles FINAL_REPORT.md
+│       ├── validate_criteria.py    # Requirements checklist automation
+│       └── run_all.py              # 5-step post-training orchestrator
 │
 ├── models/
-│   ├── best_model.pkl             # Production model
-│   └── all_model_results.json     # All metrics
+│   ├── best_model.pkl              # Selected production pipeline (joblib)
+│   ├── all_model_results.json      # Validation/test metrics for every candidate
+│   └── tuned/                      # Per-model tuned estimators + *_summary.json (best params, CV scores)
 │
 ├── reports/
-│   ├── eda/                       # EDA outputs
-│   ├── evaluation/                # Evaluation plots
-│   ├── figures/                   # Feature-importance and subgroup plots
-│   ├── subgroup_analysis.json     # Fairness results
-│   ├── FINAL_REPORT.md            # Comprehensive report
+│   ├── eda/                        # Raw EDA plots + summaries
+│   ├── evaluation/                 # Validation/test plot artifacts + evaluation_summary.json
+│   ├── figures/                    # Feature importance & subgroup charts
+│   ├── interpretability/           # Permutation importance summary JSON
+│   ├── subgroup_analysis.json      # Fairness outcomes per demographic bucket
+│   ├── FINAL_REPORT.md             # Consolidated narrative + metrics
 │   └── success_criteria_validation.json
 │
-└── blood_donor_dataset.csv        # Generated raw data
-└── processed_donor_features.csv   # Engineered features
+└── blood_donor_dataset.csv         # Generated raw data
+└── processed_donor_features.csv    # Engineered features
 ```
 
 ---
@@ -359,17 +369,17 @@ PRML-Project-Blood-Donation/
 
 ### Hyperparameter Tuning
 
-To optimize model hyperparameters before final training (optional but recommended):
+Run the tuning pass before every training cycle so `src.pipeline.run` can reuse the latest search results:
 
 ```bash
 python -m src.models.tune
 ```
-This performs RandomizedSearchCV followed by HalvingGridSearchCV for each candidate model, using 4-fold stratified cross-validation with F1-score as the optimization metric, and saves tuned estimators under `models/tuned/`.
+This command executes RandomizedSearchCV followed by HalvingGridSearchCV for each candidate model (4-fold stratified CV, F1 scoring) and writes tuned estimators to `models/tuned/`.
 
-Typical end-to-end training sequence:
+Required end-to-end training sequence:
 
 ```bash
-python -m src.models.tune    # one-time (or occasional, optional but recommended) hyperparameter search
+python -m src.models.tune    # mandatory hyperparameter search (refresh before each training cycle)
 python -m src.pipeline.run   # train/evaluate all models and select the best
 ```
 
@@ -378,6 +388,9 @@ python -m src.pipeline.run   # train/evaluate all models and select the best
 Run specific analyses without the full pipeline:
 
 ```bash
+# Run full post-training analysis suite
+python -m src.analysis.run_all
+
 # Generate evaluation plots only
 python -m src.analysis.evaluation
 
