@@ -563,15 +563,8 @@ def score_donor_form(
     
     # Quick validation on locations + dates before feature engineering
     # Gradio DateTime sends epoch floats (seconds since 1970), so parse with unit="s"
-    if isinstance(first_donation_date, (int, float)):
-        first_date = pd.to_datetime(first_donation_date, unit="s")
-    else:
-        first_date = pd.to_datetime(first_donation_date)
-    
-    if isinstance(last_donation_date, (int, float)):
-        last_date = pd.to_datetime(last_donation_date, unit="s")
-    else:
-        last_date = pd.to_datetime(last_donation_date)
+    first_date = _parse_date_input(first_donation_date, "First donation date")
+    last_date = _parse_date_input(last_donation_date, "Last donation date")
     
     print(f"[DEBUG] Parsed first_date: {first_date}, last_date: {last_date}, span: {(last_date - first_date).days} days")
     location_counts = [
