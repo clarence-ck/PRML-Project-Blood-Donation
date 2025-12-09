@@ -16,6 +16,7 @@ from typing import Dict, Tuple
 import httpx
 import gradio as gr
 import pandas as pd
+from gradio_calendar import Calendar
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -268,9 +269,9 @@ def _default_form_values() -> Dict[str, object]:
         "gender": "Male",
         "education_level": "University",
         "blood_group": "O+",
-        # Use string format for DateTime components (YYYY-MM-DD)
-        "first_donation_date": "2024-03-20",
-        "last_donation_date": "2024-03-20",
+        # Use datetime objects for Calendar components
+        "first_donation_date": datetime.datetime(2024, 3, 20),
+        "last_donation_date": datetime.datetime(2024, 3, 20),
         "last_donation_volume_ml": 420,
         "donation_count_outram": 1,
         "donation_count_dhoby_ghaut": 0,
@@ -752,17 +753,17 @@ def build_app() -> gr.Blocks:
 
                 with gr.Accordion("📅 Donation Timeline", open=True):
                     with gr.Row():
-                        first_donation_date = gr.DateTime(
+                        first_donation_date = Calendar(
+                            type="datetime",
                             label="First Donation",
                             value=defaults["first_donation_date"],
-                            include_time=False,
-                            info="Date of first ever donation",
+                            info="Click calendar icon to select date",
                         )
-                        last_donation_date = gr.DateTime(
+                        last_donation_date = Calendar(
+                            type="datetime",
                             label="Last Donation",
                             value=defaults["last_donation_date"],
-                            include_time=False,
-                            info="Most recent donation date",
+                            info="Click calendar icon to select date",
                         )
 
                 with gr.Accordion("📊 Donation Statistics", open=True):
