@@ -268,8 +268,9 @@ def _default_form_values() -> Dict[str, object]:
         "gender": "Male",
         "education_level": "University",
         "blood_group": "O+",
-        "first_donation_date": datetime.datetime(2024, 3, 20),
-        "last_donation_date": datetime.datetime(2024, 3, 20),
+        # Use string format for DateTime components (YYYY-MM-DD)
+        "first_donation_date": "2024-03-20",
+        "last_donation_date": "2024-03-20",
         "last_donation_volume_ml": 420,
         "donation_count_outram": 1,
         "donation_count_dhoby_ghaut": 0,
@@ -327,16 +328,35 @@ def _get_api_base_url() -> str:
 
 def _parse_date_input(value: object, field_name: str) -> pd.Timestamp:
     """Coerce Gradio DateTime values (datetime/string/epoch) into timestamps."""
+    # Handle None, empty string, or NaN-like values
     if value is None or value == "":
         raise gr.Error(f"Please provide a value for {field_name}.")
+
+    # Check for NaN (Gradio may send NaN for invalid input)
+    if isinstance(value, float) and pd.isna(value):
+        raise gr.Error(
+            f"Invalid value for {field_name}. Please use the calendar picker or enter a valid date (YYYY-MM-DD)."
+        )
 
     try:
         if isinstance(value, (int, float)):
             return pd.to_datetime(value, unit="s")
-        return pd.to_datetime(value)
-    except (ValueError, TypeError) as exc:
+        # For string input, try parsing
+        result = pd.to_datetime(value)
+        # Check if result is NaT (Not a Time)
+        if pd.isna(result):
+            raise gr.Error(
+                f"Could not interpret {field_name}. Please use the calendar picker or enter a valid date (YYYY-MM-DD)."
+            )
+        return result
+    except (ValueError, TypeError, pd.errors.ParserError) as exc:
         raise gr.Error(
-            f"Could not interpret {field_name}. Please pick a valid calendar date."
+            f"Could not interpret {field_name}. Please use the calendar picker or enter a valid date (YYYY-MM-DD)."
+        ) from exc
+    except Exception as exc:
+        # Catch-all for any unexpected parsing errors
+        raise gr.Error(
+            f"Invalid date for {field_name}. Please use the calendar picker to select a valid date."
         ) from exc
 
 
